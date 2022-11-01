@@ -1,0 +1,85 @@
+1. c 아래에 mongodb 폴더 생성
+2. 위의 폴더에 config1 config2 config3 db1 db2 db3 폴더 생성
+3. cmd창 3개 실행하여 각각 하나씩 입력
+[cmd1]
+mongod --configsvr --replSet replica --dbpath c:\mongodb\config1 --port 40001
+[cmd2]
+mongod --configsvr --replSet replica --dbpath c:\mongodb\config2 --port 40002
+[cmd3]
+mongod --configsvr --replSet replica --dbpath c:\mongodb\config3 --port 40003
+
+4. 새로운 cmd창 1개 실행하여 입력
+[cmd4]
+mongo --port 40001
+config={_id : "replica", members : [{_id : 0, host : "localhost:40001"}, {_id : 1, host : "localhost:40002"}, {_id : 2, host : "localhost:40003"}]}
+rs.initiate(config) → 초기화 설정
+# ctrl+c로 탈출
+
+5. 새로운 cmd창 3개 실행하여 각각 하나씩 입력
+[cmd5]
+mongod --shardsvr --replSet shardSet1 --dbpath c:\mongodb\db1 --port 30001
+[cmd6]
+mongod --shardsvr --replSet shardSet2 --dbpath c:\mongodb\db2 --port 30002
+[cmd7]
+mongod --shardsvr --replSet shardSet3 --dbpath c:\mongodb\db3 --port 30003
+
+6. 4번에 이어서 입력
+[cmd4]
+mongo --port 30001
+config={_id : "shardSet1", members : [{_id : 0, host : "localhost:30001"}]}
+rs.initiate(config)
+# ctrl+c로 탈출
+
+mongo --port 30002
+config={_id : "shardSet2", members : [{_id : 0, host : "localhost:30002"}]}
+rs.initiate(config)
+# ctrl+c로 탈출
+
+mongo --port 30003
+config={_id : "shardSet3", members : [{_id : 0, host : "localhost:30003"}]}
+rs.initiate(config)
+# ctrl+c로 탈출
+
+mongos --configdb replica/localhost:40001,localhost:40002,localhost:40003 --port 27077  (콤마 사이 띄워쓰기 금지)
+
+7. 새로운 cmd창 1개 실행하여 입력
+[cmd8]
+mongo --port 27077
+use admin
+sh.addShard("shardSet1/localhost:30001")
+sh.addShard("shardSet2/localhost:30002")
+sh.addShard("shardSet3/localhost:30003")
+
+use emp
+sh.status() → 상태 확인
+db.programmer.createIndex({_id : 1})
+sh.enableSharding("emp")
+sh.shardCollection("emp.programmer", {_id : "hashed"})
+sh.status()
+
+use emp
+db.programmer.getShardDistribution() → 상태 확인
+
+use emp
+for(var i=0; i<100000; i++) {db.programmer.insert({name : "student"+i})}  # 생성 오래걸림
+
+use emp
+db.programmer.count()
+db.programmer.getShardDistribution() → 10만개가 알아서 분산(각각 약 3.3만개)된 거 확인가능
+ctrl+c
+
+8. 7의 마지막에 분산된거 개별로 접속해서 직접 확인해보기
+mongo --port 30001
+use emp
+db.programmer.count()
+ctrl+c
+
+mongo --port 30002
+use emp
+db.programmer.count()
+ctrl+c
+
+mongo --port 30003
+use emp
+db.programmer.count()
+ctrl+c

@@ -1,0 +1,106 @@
+1. 다운로드
+https://www.mongodb.com/try/download/community-kubernetes-operator 접속
+version : 5.0.13
+package : msi
+
+2. PATH 추가
+환경변수 - 시스템변수 path에 추가
+경로 : C:\Program Files\MongoDB\Server\5.0\bin
+
+3. cmd 실행
+mongod 입력 - 설치 확인
+* path 추가 안하면 C:\data\db가 기본 경로
+
+4. 명령어
+mongo
+show dbs → db확인
+use admin → admin 사용하기
+show collections
+
+5. test1
+use test → test 사용하기(없으면 자동생성됨)
+db.scores.save({a: 99}) → 저장
+db.scores.find() → 찾기(oracle에서 select)
+
+var a = {age : 25}
+a.age
+
+var n = {name: 'ED', languages: ['c', 'java', 'js']}
+n.name
+n.languages
+n.languages[0]
+
+for(i=0; i<10; i++) {db.scores.save({a: i, exam: 5})}
+db.scores.find()
+db.scores.find({a: 2}) → ( )안에 조건 입력(oracle에서 where)
+db.scores.find({a: {'$gt': 15}}) → a가 15보다 큰 조건
+db.scores.find({a: {'$lt': 15}}) → a가 15보다 작은 조건
+db.scores.find({a: {'$gt': 2, '$lt': 5}}) → a가 2보다 크고 5보다 작은 조건
+db.scores.find({exam: {$exists: true}}) → exam이 존재하는 값만
+db.scores.find({a: {'$in': [2, 3, 4]}}) → a에 2, 3, 4 있는 값만
+db.scores.find({a: {'$nin': [2, 3, 4]}}) → a에 2, 3, 4 없는 값만
+
+6. test2
+db.users.save({name: 'john', language: ['java', 'ruby']})
+db.users.save({name: 'smith', language: ['oracle', 'mysql']})
+db.users.find({}, {name: true}) → name값만 찾기
+db.users.find({}, {name: 1}) → 1은 true를 의미
+db.users.update({name: 'cathy'}, {'$set': {age: 50}})
+db.users.drop() → 삭제
+
+7. test3
+db.persons.save({name: 'john'})
+db.createCollection('emp') → emp 생성
+show collections
+db.emp.validate()
+db.emp.renameCollection('employees') → 이름 바꾸기
+show collections
+db.employees.drop()
+
+8. test4
+db.createCollection('emp')
+db.emp.save({empno : 3, ename : 5}) → save 대신 insert 사용가능
+db.emp.insert({empno : 1101, fname : 'name1101'})
+db.emp.insert({empno : 1102, fname : 'name1102'})
+db.emp.insert({empno : 1103, fname : 'name1103'})
+
+db.emp.find({empno : 3}, {ename : 1}) → empno가 3인 모든 ename 찾기
+db.emp.find({}, {empno : 1, ename : 1}) → empno와 ename있는 모든 값 찾기
+db.emp.find({empno : 1103}, {fname : 1}) → 앞{ }는 조건, 뒤{ }는 찾고자 하는 값
+
+# empno가 1000보다 큰 값 출력
+db.emp.find({empno : {'$gt': 1000}})
+
+# empno가 1000보다 큰 값의 fname 출력
+db.emp.find({empno : {'$gt': 1000}}, {fname : 1})
+
+# empno가 1101이고 fname이 name1101인 값 출력
+db.emp.find({empno : 1101, fname : 'name1101'}) → 아래랑 동일함
+db.emp.find({$and : [{empno : 1101}, {fname : 'name1101'}]}) → 위랑 동일함
+
+# empno가 1101이거나 fname이 name1103인 값 출력
+db.emp.find({$or : [{empno : 1101}, {fname : 'name1103'}]})
+
+# empno가 1101이거나 fname이 name1103인 값의 fname 출력
+db.emp.find({$or : [{empno : 1101}, {fname : 'name1103'}]}, {fname : 1})
+
+9. test5
+db.createCollection('visit')
+db.visit.insert({day : "11", month : "04", count : 1})
+db.visit.insert({day : "12", month : "04", count : 15})
+db.visit.insert({day : "13", month : "04", count : 2})
+db.visit.insert({day : "14", month : "04", count : 4})
+db.visit.insert({day : "15", month : "04", count : 1})
+
+# count가 5보다 큰 day 값 출력
+db.visit.find({count : {'$gt' : 5}}, {day : 1})
+
+# day가 12인 count 값 출력
+db.visit.find({day : "12"}, {count : 1})
+db.visit.find({day : "12"}, {count : true})
+
+# day가 14보다 크거나 count 1인 값 출력
+db.visit.find({$or : [{day : {'$gt' : 14}}, {count : 1}]})
+
+# day가 14보다 크거나 count가 1인 day, count값 출력
+db.visit.find({$or : [{day : {'$gt' : 14}}, {count : 1}]}, {day : true, count : true})
